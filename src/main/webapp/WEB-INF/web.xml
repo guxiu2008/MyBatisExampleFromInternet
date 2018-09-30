@@ -1,0 +1,40 @@
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://java.sun.com/xml/ns/javaee"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaeehttp://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+         id="WebApp_ID" version="3.0">
+<display-name>HelloWorldSpring</display-name>
+
+<servlet>
+  <servlet-name>spring-mvc</servlet-name>
+  <servlet-class>
+    org.springframework.web.servlet.DispatcherServlet
+  </servlet-class>
+  <!-- 用于加载mvc配置文件,如果不配置init-param,默认查找MVC配置文件的地址是：/WEB-INF/${servletName}-servlet.xml -->
+  <init-param>
+    <param-name>contextConfigLocation</param-name>
+    <param-value>classpath:springmvc-servlet.xml</param-value>
+  </init-param>
+  <load-on-startup>1</load-on-startup>
+</servlet>
+
+<servlet-mapping>
+  <servlet-name>spring-mvc</servlet-name>
+  <url-pattern>/</url-pattern>
+</servlet-mapping>
+
+<!-- Other XML Configuration -->
+<!-- Load by Spring ContextLoaderListener -->
+  <!-- 用于读取加载spring配置文件,如果不配置不配置,默认的路径是/WEB-INF/applicationontext.xml,如果有多个,可以使用逗号分开 -->
+  <!-- 需要和listener标签配合使用 -->
+  <!--  不太了解为什么有了servlet标签中指定的文件还要这个,目前所知道的是web工程 -->
+<context-param>
+  <param-name>contextConfigLocation</param-name>
+  <param-value>classpath:applicationContext.xml,classpath:mybatis/spring*.xml</param-value>
+</context-param>
+
+<!-- Spring ContextLoaderListener -->
+<listener>
+  <listener-class>org.springframework.web.context.ContextLoaderListener
+  </listener-class>
+</listener>
+</web-app>

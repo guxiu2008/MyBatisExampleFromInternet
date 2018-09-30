@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- mapper标签要指定namespace属性，不然会报错，可看做包名-->
+<!-- namespace属性如果配置直接指向具体的Dao层接口类,则无需进行该接口的实现,框架主动根据id实现接口内容 -->
+<mapper namespace="com.guxiu.dao.IStudentDao">
+<!--
+<mapper namespace="123">
+-->
+    <select id="findStudentById" parameterType="String" resultType="com.guxiu.entity.Student">
+        select id, name from student where id = #{id}
+    </select>
+    <select id="findAllStudents" resultType="com.guxiu.entity.Student">
+        select id, name from student
+    </select>
+
+    <update id="multiSql" parameterType="String">
+        begin
+        delete from student where id = '111';
+        insert into student (id, name) values ('111', 'Allan');
+        end;
+    </update>
+</mapper>

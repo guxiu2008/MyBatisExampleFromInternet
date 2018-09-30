@@ -1,0 +1,68 @@
+springmvc+mybatis学习
+
+一、SpringMvc的HelloWorld实现
+1、所需的配置项目
+    web.xml:
+        1）webapp的入口
+        2）servlet和servlet-mapping可以配置多个，根据url上下文匹配servlet实例运行网页
+        3）listener标签用于监听用户行为的东西
+        4）若运行helloworld只需要配置servlet、servlet-mapping、listener标签即可
+        5）详细解释可以参考网页：https://blog.csdn.net/ahou2468/article/details/79015251
+        6）标签context-param用于读取加载spring配置文件,如果不配置不配置,默认的路径是/WEB-INF/applicationontext.xml,如果有多个,可以使用逗号分开,必须存在,HelloWorld的实现可以先随便弄一个空的applicationContext.xml文件
+    springmvc-servlet.xml：
+        1）初步认为是control层和view层关联的配置文件
+        2）详细解释可以参考网页：https://blog.csdn.net/zhang_jane_1987/article/details/80021166
+2、代码编写
+    controller层：
+        1）新建的Controller类，在类的上方需要添加@Controller注解，springmvc-servlet.xml配置文件会进行扫描
+        2）成员方法上使用@RequestMapping注解，webapp会根据用户输入的url内容寻找各个Controller类中对应注解的内容，并匹配使用对应的方法进行处理
+        3）Model实例是Controller类成员方法的形参，通过Model对象的addAttribute方法可以向前台页面传输对应的key/value，其中value可以是对象
+3、Spring的依赖配置
+    无论什么情况下，spring相关的pom依赖版本都必须保持一致，否则会有很多奇怪的异常，例如配置文件的读取存在权限异常、某些类加载失败之类
+4、SpringMVC的层次介绍
+    1）dao层dao层主要做数据持久层的工作，负责与数据库进行联络的一些任务都封装在此，dao层的设计首先是设计dao层的接口，然后在Spring的配置文件中定义此接口的实现类，然后就可以再模块中调用此接口来进行数据业务的处理，而不用关心此接口的具体实现类是哪个类，显得结构非常清晰，dao层的数据源配置，以及有关数据库连接参数都在Spring配置文件中进行配置。
+    2）service层service层主要负责业务模块的应用逻辑应用设计。同样是首先设计接口，再设计其实现类，接着再Spring的配置文件中配置其实现的关联。这样我们就可以在应用中调用service接口来进行业务处理。service层的业务实，具体要调用已经定义的dao层接口，封装service层业务逻辑有利于通用的业务逻辑的独立性和重复利用性。程序显得非常简洁。
+    3）controller层controller层负责具体的业务模块流程的控制，在此层要调用service层的接口来控制业务流程，控制的配置也同样是在Spring的配置文件里进行，针对具体的业务流程，会有不同的控制器。我们具体的设计过程可以将流程进行抽象归纳，设计出可以重复利用的子单元流程模块。这样不仅使程序结构变得清晰，也大大减少了代码量。
+    4）view层view层与控制层结合比较紧密，需要二者结合起来协同开发。view层主要负责前台jsp页面的显示。
+    5）它们之间的关系：Service层是建立在DAO层之上的，建立了DAO层后才可以建立Service层，而Service层又是在Controller层之下的，因而Service层应该既调用DAO层的接口，又要提供接口给Controller层的类来进行调用，它刚好处于一个中间层的位置。每个模型都有一个Service接口，每个接口分别封装各自的业务处理方法。 
+
+二、MyBatis的引入
+1、MyBatis官方文档
+    http://www.mybatis.org/mybatis-3/zh/index.html
+2、pom.xml依赖添加
+    1）基础依赖：mybatis、mybatis-spring
+    2）相关依赖：数据库驱动类jar包（oracle的是ojdbc）、spring-jdbc
+    3）数据库连接池：druid
+3、jdbc.properties配置
+    没什么好总结，就是数据库连接相关的信息
+4、web.xml
+    添加context-param标签的配置，添加对mybatis相关xml配置文件的读取。
+    原理就是利用spring把mybatis相关的类通过bean的方式注入到webapp，本例中主要读取spring-dao.xml和spring-service.xml两个配置文件
+5、mybatis-config.xml配置
+    配置文件里面的<configuration>标签其实是mybatis的核心配置，在官方网站的说法是可以用于配置数据库连接信息以及对应的mapper配置文件
+    官网介绍，每一个mybatis应用都是以SqlSessionFactory实例为中心，而SqlSessionFactory则是使用<configuration>创建的
+    配置文件的引用将会在spring-dao.xml中体现
+6、spring-dao.xml配置
+    配置文件的内容主要分以下几个部分：
+    1）jdbc.propertis文件的加载，为连接数据库做准备
+    2）数据库连接池的注入，这里使用了阿里的数据库连接池，听说效率是最高的，并引用了jdbc.propertis文件的内容
+    3）注入SqlSessionFactory对象，官网介绍，每一个mybatis应用都是以SqlSessionFactory实例为中心，这里使用了mybatis-config.xml配置里的<configuration>，利用spring依赖注入的方式，创建了SqlSessionFactory对象，并关联了entity（就是数据表实体类，有时候又叫Model）和mapper映射xml配置（简单理解就是写sql的地方）
+    4）配置扫描Dao接口包，动态实现Dao接口，注入到spring容器中，这个需要mapper映射xml配置里面，<mapper>标签中namespace选项的配合使用
+7、spring-service.xml配置
+    除了引入了Service类，目前还不了解用途，稍后阅读官方文档后再补充
+8、dao层开发
+    1）动态实现Dao接口模式：只需要开发Dao接口类，无需实现，但是mapper映射xml配置里面，<mapper>标签中namespace选项需要指定具体的接口类名，否则会报错
+9、service层开发
+    经过尝试，不写接口类也是没有问题的，网上的解释是面向接口编程，我认为接口类应该是一种规范吧，毕竟支持多态
+    service层的实现做两件事：
+    1）业务处理流程实现
+    2）调用Dao层接口实现数据入库
+10、controller层开发
+    调用service层接口
+11、单个Dao接口执行多条不同类型的sql更新
+    1）网上的说法是使用分号分开即可，但是经过测试，不同数据库存在不同的差异，oracle只能编写类似存储过程一般的脚本才可以
+12、sql注入
+    能用#{}就不要用${}
+    具体解释可以阅读以下网页
+    https://blog.csdn.net/dange_h/article/details/79196451
+    https://www.jianshu.com/p/b16c5ee4e29d
